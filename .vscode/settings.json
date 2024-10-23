@@ -1,0 +1,11 @@
+{
+    "dart.previewFlutterUiGuides": true,
+    "[dart]": {
+        "editor.defaultFormatter": "Dart-Code.dart-code",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+    },
+    "vsicons.associations.fileDefault.file": null
+}

@@ -1,6 +1,6 @@
 # emeraldcare
 
-A new Flutter project.
+Mobile app with WebView.
 
 ## Getting Started
 
