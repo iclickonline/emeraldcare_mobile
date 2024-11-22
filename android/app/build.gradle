@@ -20,6 +20,7 @@ android {
     }
 
     defaultConfig {
+        def applicationName = "Emerald Care"
         applicationId = "com.emeraldcare.mobile"
         minSdk 24
         targetSdk = flutter.targetSdkVersion

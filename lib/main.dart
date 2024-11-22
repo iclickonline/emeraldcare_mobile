@@ -94,7 +94,7 @@ Page resource error:
         },
       )
       ..loadRequest(
-          Uri.parse('https://emarald-care-qa.iclick.website/staff/login'));
+          Uri.parse('https://emarald-care-dev.iclick.website/staff/login'));
 
     // setBackgroundColor is not currently supported on macOS.
     if (kIsWeb || !Platform.isMacOS) {
