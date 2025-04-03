@@ -1,12 +1,29 @@
-import 'dart:io';
+import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_android/webview_flutter_android.dart';
-import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
-void main() {
+WebViewEnvironment? webViewEnvironment;
+
+Future main() async {
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
+    final availableVersion = await WebViewEnvironment.getAvailableVersion();
+    assert(availableVersion != null,
+        'Failed to find an installed WebView2 runtime or non-stable Microsoft Edge installation.');
+
+    webViewEnvironment = await WebViewEnvironment.create(
+        settings: WebViewEnvironmentSettings(
+      additionalBrowserArguments: kDebugMode
+          ? '--enable-features=msEdgeDevToolsWdpRemoteDebugging'
+          : null,
+      userDataFolder: 'custom_path',
+    ));
+  }
+
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    await InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+  }
   runApp(const MyApp());
 }
 
@@ -34,81 +51,40 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final WebViewController _controller;
+  final GlobalKey webViewKey = GlobalKey();
+
+  InAppWebViewController? webViewController;
+  InAppWebViewSettings settings = InAppWebViewSettings(
+      isInspectable: kDebugMode,
+      mediaPlaybackRequiresUserGesture: false,
+      allowsInlineMediaPlayback: true,
+      iframeAllow: "camera; microphone",
+      iframeAllowFullscreen: true);
+
+  PullToRefreshController? pullToRefreshController;
 
   @override
   void initState() {
     super.initState();
 
-    // #docregion platform_features
-    late final PlatformWebViewControllerCreationParams params;
-    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
-      params = WebKitWebViewControllerCreationParams(
-        allowsInlineMediaPlayback: true,
-        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
-      );
-    } else {
-      params = const PlatformWebViewControllerCreationParams();
-    }
-
-    final WebViewController controller =
-        WebViewController.fromPlatformCreationParams(params);
-
-    controller
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onProgress: (int progress) {
-            debugPrint('WebView is loading (progress : $progress%)');
-          },
-          onPageStarted: (String url) {
-            debugPrint('Page started loading: $url');
-          },
-          onPageFinished: (String url) {
-            debugPrint('Page finished loading: $url');
-          },
-          onWebResourceError: (WebResourceError error) {
-            debugPrint('''
-Page resource error:
-  code: ${error.errorCode}
-  description: ${error.description}
-  errorType: ${error.errorType}
-  isForMainFrame: ${error.isForMainFrame}
-          ''');
-          },
-          onHttpError: (HttpResponseError error) {
-            debugPrint('Error occurred on page: ${error.response?.statusCode}');
-          },
-          onUrlChange: (UrlChange change) {
-            debugPrint('url change to ${change.url}');
-          },
-          onHttpAuthRequest: (HttpAuthRequest request) {},
-        ),
-      )
-      ..addJavaScriptChannel(
-        'Toaster',
-        onMessageReceived: (JavaScriptMessage message) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message.message)),
+    pullToRefreshController = kIsWeb ||
+            ![TargetPlatform.iOS, TargetPlatform.android]
+                .contains(defaultTargetPlatform)
+        ? null
+        : PullToRefreshController(
+            settings: PullToRefreshSettings(
+              color: Colors.blue,
+            ),
+            onRefresh: () async {
+              if (defaultTargetPlatform == TargetPlatform.android) {
+                webViewController?.reload();
+              } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+                webViewController?.loadUrl(
+                    urlRequest:
+                        URLRequest(url: await webViewController?.getUrl()));
+              }
+            },
           );
-        },
-      )
-      ..loadRequest(Uri.parse('https://qa.emaraldcare.com.au/staff/login'));
-
-    // setBackgroundColor is not currently supported on macOS.
-    if (kIsWeb || !Platform.isMacOS) {
-      controller.setBackgroundColor(const Color(0x80000000));
-    }
-
-    // #docregion platform_features
-    if (controller.platform is AndroidWebViewController) {
-      AndroidWebViewController.enableDebugging(true);
-      (controller.platform as AndroidWebViewController)
-          .setMediaPlaybackRequiresUserGesture(false);aaa
-    }
-    // #enddocregion platform_features
-
-    _controller = controller;
   }
 
   @override
@@ -117,7 +93,35 @@ Page resource error:
       appBar: const CustomAppBar(
         preferredSize: Size.fromHeight(20.0),
       ),
-      body: WebViewWidget(controller: _controller),
+      body: InAppWebView(
+        key: webViewKey,
+        webViewEnvironment: webViewEnvironment,
+        initialUrlRequest: URLRequest(
+            url: WebUri('https://staff.emaraldcare.com.au/staff/login')),
+        initialUserScripts: UnmodifiableListView<UserScript>([]),
+        initialSettings: settings,
+        pullToRefreshController: pullToRefreshController,
+        onWebViewCreated: (controller) async {
+          webViewController = controller;
+        },
+        onLoadStart: (controller, url) {},
+        shouldOverrideUrlLoading: (controller, navigationAction) async {
+          return NavigationActionPolicy.ALLOW;
+        },
+        onLoadStop: (controller, url) {
+          pullToRefreshController?.endRefreshing();
+        },
+        onReceivedError: (controller, request, error) {
+          pullToRefreshController?.endRefreshing();
+        },
+        onProgressChanged: (controller, progress) {
+          if (progress == 100) {
+            pullToRefreshController?.endRefreshing();
+          }
+        },
+        onUpdateVisitedHistory: (controller, url, isReload) {},
+        onConsoleMessage: (controller, consoleMessage) {},
+      ),
     );
   }
 }
