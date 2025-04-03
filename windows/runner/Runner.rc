@@ -92,10 +92,10 @@ BEGIN
             VALUE "CompanyName", "com.example" "\0"
             VALUE "FileDescription", "emeraldcare" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "emeraldcare" "\0"
+            VALUE "InternalName", "emaraldcare" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "emeraldcare.exe" "\0"
-            VALUE "ProductName", "emeraldcare" "\0"
+            VALUE "OriginalFilename", "emaraldcare.exe" "\0"
+            VALUE "ProductName", "emaraldcare" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

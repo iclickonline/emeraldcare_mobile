@@ -93,8 +93,7 @@ Page resource error:
           );
         },
       )
-      ..loadRequest(
-          Uri.parse('https://emarald-care-dev.iclick.website/staff/login'));
+      ..loadRequest(Uri.parse('https://qa.emaraldcare.com.au/staff/login'));
 
     // setBackgroundColor is not currently supported on macOS.
     if (kIsWeb || !Platform.isMacOS) {
@@ -105,7 +104,7 @@ Page resource error:
     if (controller.platform is AndroidWebViewController) {
       AndroidWebViewController.enableDebugging(true);
       (controller.platform as AndroidWebViewController)
-          .setMediaPlaybackRequiresUserGesture(false);
+          .setMediaPlaybackRequiresUserGesture(false);aaa
     }
     // #enddocregion platform_features
 

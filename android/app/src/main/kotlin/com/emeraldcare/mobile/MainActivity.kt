@@ -1,4 +1,4 @@
-package com.emeraldcare.mobile
+package com.emaraldcare.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

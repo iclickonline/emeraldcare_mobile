@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.emeraldcare.mobile"
+    namespace = "com.emaraldcare.mobile"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         def applicationName = "Emerald Care"
-        applicationId = "com.emeraldcare.mobile"
+        applicationId = "com.emaraldcare.mobile"
         minSdk 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
